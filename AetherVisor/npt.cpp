@@ -73,7 +73,7 @@ void VcpuData::NestedPageFaultHandler(GuestRegisters* guest_regs)
 	{
 		if (ncr3.QuadPart == Hypervisor::Get()->ncr3_dirs[sandbox])
 		{
-			// DbgPrint("PAGE_ALIGN(fault_physical.QuadPart) = %p \n", PAGE_ALIGN(fault_physical.QuadPart));
+			DbgPrint("PAGE_ALIGN(fault_physical.QuadPart) = %p \n", PAGE_ALIGN(fault_physical.QuadPart));
 			
 			auto denied_read_page = Sandbox::ForEachHook(
 				[](auto hook_entry, auto data) -> auto {
@@ -155,7 +155,7 @@ void VcpuData::NestedPageFaultHandler(GuestRegisters* guest_regs)
 			{
 				/*  call out of sandbox context and set RIP to the instrumentation hook for executes  */
 
-				Instrumentation::InvokeHook(this, Instrumentation::sandbox_execute, &guest_vmcb.save_state_area.br_from, sizeof(int64_t));
+				// Instrumentation::InvokeHook(this, Instrumentation::sandbox_execute, &guest_vmcb.save_state_area.br_from, sizeof(int64_t));
 			}
 		}
 
