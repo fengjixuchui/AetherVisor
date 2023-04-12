@@ -25,6 +25,12 @@ void VcpuData::VmmcallHandler(GuestRegisters* guest_ctx, bool* end_svm)
 
         break;
     }
+    case VMMCALL_ID::stop_branch_trace:
+    {
+        BranchTracer::Stop(this);
+
+        break;
+    }
     case VMMCALL_ID::deny_sandbox_reads:
     {
         Sandbox::DenyMemoryAccess(this, (void*)guest_ctx->rdx, guest_ctx->r8);
@@ -51,6 +57,10 @@ void VcpuData::VmmcallHandler(GuestRegisters* guest_ctx, bool* end_svm)
     }
     case VMMCALL_ID::sandbox_page:
     {
+        /*  exclude calls/jmps to IDT    */
+
+        Sandbox::branch_exclusion_range_base = guest_ctx->r9;
+
         Sandbox::AddPageToSandbox(this, (void*)guest_ctx->rdx, guest_ctx->r8);
 
         break;

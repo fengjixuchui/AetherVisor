@@ -12,6 +12,8 @@ namespace Sandbox
 	SandboxPage* sandbox_page_array;
 
 	int max_hooks = 10000;
+	
+	uintptr_t branch_exclusion_range_base;
 
 	void Init()
 	{
@@ -36,7 +38,7 @@ namespace Sandbox
 
 	void ReleasePage(SandboxPage* hook_entry)
 	{
-		Utils::UnlockPages(hook_entry->mdl);
+		// Utils::UnlockPages(hook_entry->mdl);
 
 		if (hook_entry->primary_npte)
 		{
@@ -133,7 +135,7 @@ namespace Sandbox
 
 			sandbox_entry->process_cr3 = __readcr3();
 
-			sandbox_entry->mdl = Utils::LockPages(address, IoReadAccess, mode);
+	//		sandbox_entry->mdl = Utils::LockPages(address, IoReadAccess, mode);
 
 			sandbox_entry->guest_physical = PAGE_ALIGN(MmGetPhysicalAddress(address).QuadPart);
 

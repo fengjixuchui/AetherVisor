@@ -50,25 +50,44 @@ execute_handler_wrapper proc frame
     ; last branch location 17 * 8 + 0 
     
     pushfq
+
     PUSHAQ
 
     .endprolog
 
     mov rcx, rsp                    ; pass the registers
-    mov rdx, [rsp + 8 * 17 + 16]    ; pass the original return address on stack
+    mov rdx, [rsp + 8 * 17 + 16]    ; pass the return address
     mov r8, [rsp + 8 * 17 + 8]      ; pass the original guest RIP
-    mov r9, [rsp + 8 * 17]          ; pass the last branch location
+    mov r9, [rsp + 8 * 17]          ; pass the last branch address
         
     ; Align the stack pointer to 16 bytes
     push rbp
     mov rbp, rsp
     and rsp, 0FFFFFFFFFFFFFFF0h
     
+    sub rsp, 60h
+    movaps xmmword ptr [rsp], xmm0
+    movaps xmmword ptr [rsp + 10h], xmm1
+    movaps xmmword ptr [rsp + 20h], xmm2
+    movaps xmmword ptr [rsp + 30h], xmm3
+    movaps xmmword ptr [rsp + 40h], xmm4
+    movaps xmmword ptr [rsp + 50h], xmm5
+
+
     sub rsp, 20h
 
     call sandbox_execute_event
     
     add rsp, 20h
+    
+    movaps xmm5, xmmword ptr [rsp + 50h]
+    movaps xmm4, xmmword ptr [rsp + 40h]
+    movaps xmm3, xmmword ptr [rsp + 30h]
+    movaps xmm2, xmmword ptr [rsp + 20h]
+    movaps xmm1, xmmword ptr [rsp + 10h]
+    movaps xmm0, xmmword ptr [rsp]
+
+    add rsp, 60h
 
     mov rsp, rbp ; Add back the value that was subtracted
     pop rbp
@@ -76,7 +95,9 @@ execute_handler_wrapper proc frame
     POPAQ
     popfq
 
-    pop rax
+    mov [rsp], r12
+
+    pop r12
 
     ret
 	
@@ -100,7 +121,6 @@ rw_handler_wrapper proc frame
 rw_handler_wrapper endp
 
 branch_callback_wrapper proc frame
-    .endprolog
 
     pushfq
     PUSHAQ
@@ -109,6 +129,7 @@ branch_callback_wrapper proc frame
     mov rdx, [rsp + 8 * 17 + 8]     ; pass the return address
     mov r8, [rsp + 8 * 17]          ; pass the guest RIP
 
+    
     ; Align the stack pointer to 16 bytes
     push rbp
     mov rbp, rsp
@@ -116,6 +137,9 @@ branch_callback_wrapper proc frame
     
     sub rsp, 20h
     
+    .endprolog
+
+
     call BranchCallbackInternal
 
     add rsp, 20h

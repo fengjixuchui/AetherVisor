@@ -1,5 +1,4 @@
 #include "npt_hook.h"
-#include "npthook_safety.h"
 #include "logging.h"
 #include "disassembly.h"
 #include "prepare_vm.h"
@@ -79,9 +78,18 @@ bool VirtualizeAllProcessors()
 		}
 	}, NULL);
 
+	size_t nt_size;
+	UNICODE_STRING ntos_name = RTL_CONSTANT_STRING(L"ntoskrnl.exe");
+
+	auto nt_base = (uint8_t*)Utils::GetKernelModule(&nt_size, ntos_name);
+
+	bool (*KeRelaxTimingConstraints)(int one_or_zero) = static_cast<decltype(KeRelaxTimingConstraints)>((void*)(nt_base + 0x50F408));
+
+	KeRelaxTimingConstraints(1);
+
 	//	unlock MDLs and remove NPT hooks in terminating processes
 
-	NptHooks::CleanupOnProcessExit();
+	Hypervisor::Get()->CleanupOnProcessExit();
 }
 
 
